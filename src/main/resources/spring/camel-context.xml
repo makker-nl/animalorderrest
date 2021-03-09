@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="        http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd        http://camel.apache.org/schema/spring       https://camel.apache.org/schema/spring/camel-spring.xsd">
+    <bean class="org.apache.camel.component.jpa.JpaComponent" id="jpa">
+        <property name="entityManagerFactory" ref="entityManagerFactory"/>
+        <property name="transactionManager" ref="jpaTxManager"/>
+    </bean>
+    <bean class="org.springframework.orm.jpa.JpaTransactionManager" id="jpaTxManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory"/>
+    </bean>
+    <bean
+        class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean" id="entityManagerFactory">
+        <property name="persistenceUnitName" value="animalorderdb"/>
+    </bean>
+    <bean
+        class="nl.vs.fuse.animalorder.convertors.StringToMapTypeConverter" id="stringToMapTypeConverter"/>
+    <camelContext id="camel" typeConverterExists="Fail" xmlns="http://camel.apache.org/schema/spring">
+        <dataFormats>
+            <json id="order" library="Jackson" unmarshalTypeName="nl.vs.fuse.animalorder.beans.Order"/>
+            <json id="transform-json" library="Jackson"/>
+        </dataFormats>
+        <restConfiguration bindingMode="json" component="undertow" port="8080">
+            <dataFormatProperty key="prettyPrint" value="true"/>
+        </restConfiguration>
+        <rest id="animalorders-rest" path="/shop">
+            <put id="update-order"
+                type="nl.vs.fuse.animalorder.beans.Order" uri="orders">
+                <to uri="direct:updateOrder"/>
+            </put>
+            <post id="new-order"
+                type="nl.vs.fuse.animalorder.beans.Order" uri="orders">
+                <to uri="direct:createOrder"/>
+            </post>
+            <get id="get-orderId" uri="orders/{id}">
+                <to id="toDirectGetOrders" uri="direct:getOrders"/>
+            </get>
+            <delete id="delete-orderId" uri="orders/{id}">
+                <to id="toDirectDelOrders" uri="direct:deleteOrders"/>
+            </delete>
+        </rest>
+        <route id="getOrder">
+            <from id="fromDirectGetOrders" uri="direct:getOrders"/>
+            <log id="logGetOrder" message=">>> Get OrderId: ${header.id}"/>
+            <toD id="queryOrder" uri="jpa:entityType?parameters=#{&quot;id&quot;:${headers.id}}&amp;namedQuery=getOrder"/>
+            <log id="logOrder" message=">>> Got Order:  ${body}"/>
+        </route>
+        <route id="createOrder">
+            <from id="fromDirectNewOrder" uri="direct:createOrder"/>
+            <log id="logNewOrder" message=">>> New Order; body:  ${body}; OrderId: ${body.id}"/>
+            <to id="saveNewOrder" uri="jpa:nl.vs.fuse.animalorder.beans.Order"/>
+            <log id="logNewOrderResponse" message=">>> New Order saved; body:  ${body}; OrderId: ${body.id}"/>
+        </route>
+        <route id="updateOrder">
+            <from id="fromDirectNewOrder" uri="direct:updateOrder"/>
+            <log id="logUpdOrder" message=">>> Update Order; body:  ${body}; OrderId: ${body.id}"/>
+            <to id="saveUpdOrder" uri="jpa:nl.vs.fuse.animalorder.beans.Order"/>
+            <log id="logUpdOrderResponse" message=">>> Update Order saved; body:  ${body}; OrderId: ${body.id}"/>
+        </route>
+        <route id="deleteOrder">
+            <from id="fromDirectDelOrders" uri="direct:deleteOrders"/>
+            <log id="logDelOrder" message=">>> Delete OrderId: ${header.id}"/>
+            <toD id="deleteOrder" uri="jpa:entityType?parameters=#{&quot;id&quot;:${headers.id}}&amp;query=delete from nl.vs.fuse.animalorder.beans.Order o where o.id = :id"/>
+            <log id="logDelOrderResponse" message=">>> Deleted order:  ${body}"/>
+        </route>
+    </camelContext>
+</beans>
