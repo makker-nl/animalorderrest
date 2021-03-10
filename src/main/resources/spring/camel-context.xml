@@ -53,7 +53,7 @@
             <log id="logNewOrderResponse" message=">>> New Order saved; body:  ${body}; OrderId: ${body.id}"/>
         </route>
         <route id="updateOrder">
-            <from id="fromDirectNewOrder" uri="direct:updateOrder"/>
+            <from id="fromDirectUpdateOrder" uri="direct:updateOrder"/>
             <log id="logUpdOrder" message=">>> Update Order; body:  ${body}; OrderId: ${body.id}"/>
             <to id="saveUpdOrder" uri="jpa:nl.vs.fuse.animalorder.beans.Order"/>
             <log id="logUpdOrderResponse" message=">>> Update Order saved; body:  ${body}; OrderId: ${body.id}"/>
@@ -61,7 +61,7 @@
         <route id="deleteOrder">
             <from id="fromDirectDelOrders" uri="direct:deleteOrders"/>
             <log id="logDelOrder" message=">>> Delete OrderId: ${header.orderId}"/>
-            <toD id="deleteOrder" uri="jpa:entityType?parameters=#{&quot;orderId&quot;:${headers.orderId}}&amp;query=delete from nl.vs.fuse.animalorder.beans.Order o where o.orderId = :orderId"/>
+            <toD id="delOrder" uri="jpa:nl.vs.fuse.animalorder.beans.Order?parameters=#{&quot;orderId&quot;:${headers.orderId}}&amp;query=delete from nl.vs.fuse.animalorder.beans.Order o where o.id = :orderId"/>
             <log id="logDelOrderResponse" message=">>> Deleted order:  ${body}"/>
         </route>
     </camelContext>
