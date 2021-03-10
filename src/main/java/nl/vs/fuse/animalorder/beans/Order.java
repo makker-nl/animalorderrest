@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({ "id", "customer", "date", "value", "tax" })
 @NamedQueries({
-		@NamedQuery(name = "getOrder", query = "select o from nl.vs.fuse.animalorder.beans.Order o where o.id = :id")})
+		@NamedQuery(name = "getOrder", query = "select o from nl.vs.fuse.animalorder.beans.Order o where o.id = :orderId")})
 public class Order implements Serializable {
 	private static final long serialVersionUID = 5851038813219503043L;
 
