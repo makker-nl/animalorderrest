@@ -1,4 +1,4 @@
-package nl.vs.fuse.animalorder.beans;
+package nl.vs.fuse.animalorder.entities;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;

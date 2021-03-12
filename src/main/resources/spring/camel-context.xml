@@ -17,7 +17,7 @@
     <bean class="nl.vs.fuse.animalorder.beans.JpaParameters" id="jpaParameters"/>
     <camelContext id="camel" typeConverterExists="Fail" xmlns="http://camel.apache.org/schema/spring">
         <dataFormats>
-            <json id="order" library="Jackson" unmarshalTypeName="nl.vs.fuse.animalorder.beans.Order"/>
+            <json id="order" library="Jackson" unmarshalTypeName="nl.vs.fuse.animalorder.entities.Order"/>
             <json id="transform-json" library="Jackson"/>
         </dataFormats>
         <restConfiguration bindingMode="json" component="undertow" port="8080">
@@ -25,11 +25,11 @@
         </restConfiguration>
         <rest id="animalorders-rest" path="/shop">
             <put id="update-order"
-                type="nl.vs.fuse.animalorder.beans.Order" uri="orders">
+                type="nl.vs.fuse.animalorder.entities.Order" uri="orders">
                 <to uri="direct:updateOrder"/>
             </put>
             <post id="new-order"
-                type="nl.vs.fuse.animalorder.beans.Order" uri="orders">
+                type="nl.vs.fuse.animalorder.entities.Order" uri="orders">
                 <to uri="direct:createOrder"/>
             </post>
             <get id="get-orderId" uri="orders/{orderId}">
@@ -43,25 +43,25 @@
             <from id="fromDirectGetOrders" uri="direct:getOrders"/>
             <log id="logGetOrder" message=">>> Get OrderId: ${header.orderId}"/>
             <bean id="setOrderId" method="setOrderId" ref="jpaParameters"/>
-            <to id="queryOrder" uri="jpa:nl.vs.fuse.animalorder.beans.Order?namedQuery=getOrder"/>
+            <to id="queryOrder" uri="jpa:nl.vs.fuse.animalorder.entities.Order?namedQuery=getOrder"/>
             <log id="logOrder" message=">>> Got Order:  ${body}"/>
         </route>
         <route id="createOrder">
             <from id="fromDirectNewOrder" uri="direct:createOrder"/>
             <log id="logNewOrder" message=">>> New Order; body:  ${body}; OrderId: ${body.id}"/>
-            <to id="saveNewOrder" uri="jpa:nl.vs.fuse.animalorder.beans.Order"/>
+            <to id="saveNewOrder" uri="jpa:nl.vs.fuse.animalorder.entities.Order"/>
             <log id="logNewOrderResponse" message=">>> New Order saved; body:  ${body}; OrderId: ${body.id}"/>
         </route>
         <route id="updateOrder">
             <from id="fromDirectUpdateOrder" uri="direct:updateOrder"/>
             <log id="logUpdOrder" message=">>> Update Order; body:  ${body}; OrderId: ${body.id}"/>
-            <to id="saveUpdOrder" uri="jpa:nl.vs.fuse.animalorder.beans.Order"/>
+            <to id="saveUpdOrder" uri="jpa:nl.vs.fuse.animalorder.entities.Order"/>
             <log id="logUpdOrderResponse" message=">>> Update Order saved; body:  ${body}; OrderId: ${body.id}"/>
         </route>
         <route id="deleteOrder">
             <from id="fromDirectDelOrders" uri="direct:deleteOrders"/>
             <log id="logDelOrder" message=">>> Delete OrderId: ${header.orderId}"/>
-            <toD id="delOrder" uri="jpa:nl.vs.fuse.animalorder.beans.Order?parameters=#{&quot;orderId&quot;:${headers.orderId}}&amp;query=delete from nl.vs.fuse.animalorder.beans.Order o where o.id = :orderId"/>
+            <toD id="delOrder" uri="jpa:nl.vs.fuse.animalorder.entities.Order?parameters=#{&quot;orderId&quot;:${headers.orderId}}&amp;query=delete from Order o where o.id = :orderId"/>
             <log id="logDelOrderResponse" message=">>> Deleted order:  ${body}"/>
         </route>
     </camelContext>
